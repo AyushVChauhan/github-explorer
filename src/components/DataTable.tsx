@@ -1,4 +1,4 @@
-import { Table, Thead, Tr, Th, Tbody, Td, Spinner, IconButton } from "@chakra-ui/react";
+import { Table, Thead, Tr, Th, Tbody, Td, Spinner, IconButton, Image, SkeletonCircle } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../store";
 import { useEffect, useState } from "react";
@@ -9,12 +9,15 @@ import { TbSortAscendingNumbers, TbSortDescendingNumbers } from "react-icons/tb"
 import { changeSortQuery } from "../store/slices/query.slice";
 
 const selectColumns = [
-	{ value: "reponame", label: "Repository Name", key: 1, isFixed: true },
-	{ value: "owner", label: "Owner", key: 2 },
-	{ value: "description", label: "Description", key: 3 },
-	{ value: "stars", label: "Stars", key: 4 },
-	{ value: "forks", label: "Forks", key: 5 },
-	{ value: "visit", label: "Visit", key: 6, isFixed: true },
+	{ value: "reponame", label: "Repository Name", key: 0, isFixed: true },
+	{ value: "owner", label: "Owner", key: 1 },
+	{ value: "description", label: "Description", key: 2 },
+	{ value: "stars", label: "Stars", key: 3 },
+	{ value: "forks", label: "Forks", key: 4 },
+	{ value: "visit", label: "Visit", key: 5, isFixed: true },
+	{ value: "avatar_url", label: "Avatar", key: 6 },
+	{ value: "created_at", label: "Created At", key: 7 },
+	{ value: "updated_at", label: "Updated At", key: 8 },
 ];
 function DataTable() {
 	const query = useSelector((state: RootState) => state.query);
@@ -67,6 +70,7 @@ function DataTable() {
 				<Table variant="simple" className="w-full">
 					<Thead>
 						<Tr>
+							{columns.includes(selectColumns[6]) && <Th>Avatar</Th>}
 							<Th>Repository Name</Th>
 							{columns.includes(selectColumns[1]) && <Th>Owner</Th>}
 							{columns.includes(selectColumns[2]) && <Th>Description</Th>}
@@ -96,6 +100,9 @@ function DataTable() {
 									</div>
 								</Th>
 							)}
+							{columns.includes(selectColumns[7]) && <Th>Created At</Th>}
+							{columns.includes(selectColumns[8]) && <Th>Updated At</Th>}
+
 							<Th>Visit</Th>
 						</Tr>
 					</Thead>
@@ -104,12 +111,28 @@ function DataTable() {
 							<>
 								{data.data!.items.map((repo, index) => (
 									<Tr key={index}>
+										{columns.includes(selectColumns[6]) && (
+											<Th>
+												<Image
+													boxSize="30px"
+													borderRadius="full"
+													src={repo.owner.avatar_url}
+													alt="avatar"
+													fallback={<SkeletonCircle boxSize="30px" />}
+												/>
+											</Th>
+										)}
 										<Td>{repo.name}</Td>
-
 										{columns.includes(selectColumns[1]) && <Td>{repo.owner.login}</Td>}
 										{columns.includes(selectColumns[2]) && <Td>{repo.description ?? "-"}</Td>}
 										{columns.includes(selectColumns[3]) && <Td>{repo.stargazers_count}</Td>}
 										{columns.includes(selectColumns[4]) && <Td>{repo.forks}</Td>}
+										{columns.includes(selectColumns[7]) && (
+											<Td>{new Date(repo.created_at).toLocaleDateString()}</Td>
+										)}
+										{columns.includes(selectColumns[8]) && (
+											<Td>{new Date(repo.updated_at).toLocaleDateString()}</Td>
+										)}
 										<Td>
 											<IconButton
 												onClick={() => window.open(repo.html_url, "_blank")}
