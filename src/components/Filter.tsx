@@ -26,7 +26,6 @@ function Filter() {
 						<IoIosSearch />
 					</InputLeftElement>
 					<Input
-						disabled={searchType === "trending"}
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
 						placeholder="Search Repositories"

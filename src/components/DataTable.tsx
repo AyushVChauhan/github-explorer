@@ -12,6 +12,7 @@ import {
 	Input,
 	InputGroup,
 	InputLeftElement,
+	Badge,
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../store";
@@ -24,15 +25,17 @@ import { changeSortQuery } from "../store/slices/query.slice";
 import { IoIosSearch } from "react-icons/io";
 
 const selectColumns = [
-	{ value: "reponame", label: "Repository Name", key: 0, isFixed: true },
+	// { value: "reponame", label: "Repository Name", key: 0, isFixed: true },
 	{ value: "owner", label: "Owner", key: 1 },
 	{ value: "description", label: "Description", key: 2 },
 	{ value: "stars", label: "Stars", key: 3 },
 	{ value: "forks", label: "Forks", key: 4 },
-	{ value: "visit", label: "Visit", key: 5, isFixed: true },
+	// { value: "visit", label: "Visit", key: 5, isFixed: true },
 	{ value: "avatar_url", label: "Avatar", key: 6 },
 	{ value: "created_at", label: "Created At", key: 7 },
 	{ value: "updated_at", label: "Updated At", key: 8 },
+	{ value: "language", label: "Language", key: 9 },
+	{ value: "size", label: "Size", key: 10 },
 ];
 function DataTable() {
 	const query = useSelector((state: RootState) => state.query);
@@ -84,7 +87,7 @@ function DataTable() {
 					<Select
 						chakraStyles={{
 							control: (p) => {
-								return { ...p };
+								return { ...p, height: "100%", rounded: 5, minH: "40px" };
 							},
 							dropdownIndicator: (p) => {
 								return { ...p, backgroundColor: "none", paddingX: 3, fontSize: 20, background: "none" };
@@ -95,13 +98,12 @@ function DataTable() {
 						}}
 						options={selectColumns}
 						value={columns}
-						placeholder="Select some colors..."
+						placeholder="Select columns"
 						closeMenuOnSelect={false}
 						size="sm"
 						isMulti
 						colorScheme="teal"
 						onChange={(e) => setColumns(e.map((ele) => ele))}
-						isClearable={false}
 					/>
 				</div>
 			</div>
@@ -109,11 +111,12 @@ function DataTable() {
 				<Table variant="simple" className="w-full">
 					<Thead>
 						<Tr>
-							{columns.includes(selectColumns[6]) && <Th>Avatar</Th>}
+							{columns.includes(selectColumns[4]) && <Th>Avatar</Th>}
 							<Th>Repository Name</Th>
-							{columns.includes(selectColumns[1]) && <Th>Owner</Th>}
-							{columns.includes(selectColumns[2]) && <Th>Description</Th>}
-							{columns.includes(selectColumns[3]) && (
+							{columns.includes(selectColumns[0]) && <Th>Owner</Th>}
+							{columns.includes(selectColumns[7]) && <Th>Language</Th>}
+							{columns.includes(selectColumns[1]) && <Th>Description</Th>}
+							{columns.includes(selectColumns[2]) && (
 								<Th className="cursor-pointer" onClick={() => setSortQuery("stars")}>
 									<div className="flex justify-between">
 										Stars
@@ -126,7 +129,7 @@ function DataTable() {
 									</div>
 								</Th>
 							)}
-							{columns.includes(selectColumns[4]) && (
+							{columns.includes(selectColumns[3]) && (
 								<Th className="cursor-pointer" onClick={() => setSortQuery("forks")}>
 									<div className="flex justify-between">
 										Forks
@@ -139,9 +142,21 @@ function DataTable() {
 									</div>
 								</Th>
 							)}
-							{columns.includes(selectColumns[7]) && <Th>Created At</Th>}
-							{columns.includes(selectColumns[8]) && <Th>Updated At</Th>}
-
+							{columns.includes(selectColumns[8]) && <Th>Size</Th>}
+							{columns.includes(selectColumns[5]) && <Th>Created At</Th>}
+							{columns.includes(selectColumns[6]) && (
+								<Th className="cursor-pointer" onClick={() => setSortQuery("updated")}>
+									<div className="flex justify-between">
+										Updated At
+										{query.sort === "updated" && query.order === "asc" && (
+											<TbSortAscendingNumbers size={20} className="ms-3" />
+										)}
+										{query.sort === "updated" && query.order === "desc" && (
+											<TbSortDescendingNumbers size={20} className="ms-3" />
+										)}
+									</div>
+								</Th>
+							)}
 							<Th>Visit</Th>
 						</Tr>
 					</Thead>
@@ -150,7 +165,7 @@ function DataTable() {
 							<>
 								{filteredRecords.map((repo, index) => (
 									<Tr key={index}>
-										{columns.includes(selectColumns[6]) && (
+										{columns.includes(selectColumns[4]) && (
 											<Th>
 												<Image
 													boxSize="30px"
@@ -162,14 +177,34 @@ function DataTable() {
 											</Th>
 										)}
 										<Td>{repo.name}</Td>
-										{columns.includes(selectColumns[1]) && <Td>{repo.owner.login}</Td>}
-										{columns.includes(selectColumns[2]) && <Td>{repo.description ?? "-"}</Td>}
-										{columns.includes(selectColumns[3]) && <Td>{repo.stargazers_count}</Td>}
-										{columns.includes(selectColumns[4]) && <Td>{repo.forks}</Td>}
+										{columns.includes(selectColumns[0]) && <Td>{repo.owner.login}</Td>}
 										{columns.includes(selectColumns[7]) && (
-											<Td>{new Date(repo.created_at).toLocaleDateString()}</Td>
+											<Td>
+												<Badge variant="subtle" colorScheme="blue">
+													{repo.language ?? "-"}
+												</Badge>
+											</Td>
+										)}
+										{columns.includes(selectColumns[1]) && <Td>{repo.description ?? "-"}</Td>}
+										{columns.includes(selectColumns[2]) && (
+											<Td>
+												{repo.stargazers_count > 1000
+													? (repo.stargazers_count / 1000).toFixed(1) + "k"
+													: repo.stargazers_count}
+											</Td>
+										)}
+										{columns.includes(selectColumns[3]) && (
+											<Td>
+												{repo.forks > 1000 ? (repo.forks / 1000).toFixed(1) + "k" : repo.forks}
+											</Td>
 										)}
 										{columns.includes(selectColumns[8]) && (
+											<Td>{(repo.size / 1000).toFixed(2)}MB</Td>
+										)}
+										{columns.includes(selectColumns[5]) && (
+											<Td>{new Date(repo.created_at).toLocaleDateString()}</Td>
+										)}
+										{columns.includes(selectColumns[6]) && (
 											<Td>{new Date(repo.updated_at).toLocaleDateString()}</Td>
 										)}
 										<Td>
@@ -183,6 +218,7 @@ function DataTable() {
 								))}
 							</>
 						)}
+
 						{data.state === "loading" && (
 							<Tr>
 								<Td colSpan={columns.length}>
@@ -194,6 +230,7 @@ function DataTable() {
 								</Td>
 							</Tr>
 						)}
+
 						{data.state === "success" && filteredRecords.length === 0 && (
 							<Tr>
 								<Td colSpan={columns.length}>
@@ -201,6 +238,7 @@ function DataTable() {
 								</Td>
 							</Tr>
 						)}
+
 						{data.state === "error" && (
 							<Tr>
 								<Td colSpan={columns.length}>

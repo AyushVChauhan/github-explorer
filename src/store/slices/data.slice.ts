@@ -12,6 +12,7 @@ export const fetchData = createAsyncThunk("github/respository", async (query: Qu
 	let q = "";
 	const sortQuery = `&sort=${query.sort}&order=${query.order}`;
 	if (query.type === "trending") {
+		if (query.search) q += query.search + " ";
 		const sevenDaysBefore = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 		q += `created:>${sevenDaysBefore.getFullYear()}-${sevenDaysBefore
 			.getMonth()
@@ -36,7 +37,7 @@ export const fetchData = createAsyncThunk("github/respository", async (query: Qu
 	const json = await response.json();
 
 	if (response.status != 200) {
-		throw new Error(json.message);
+		throw new Error(json.message ?? "There was an error please try again later");
 	}
 	return json as GithubResponse;
 });
