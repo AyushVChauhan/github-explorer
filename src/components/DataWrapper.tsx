@@ -23,7 +23,7 @@ const selectColumns = [
 	{ value: "language", label: "Language", key: 9 },
 	{ value: "size", label: "Size", key: 10 },
 ];
-function DataTableFilters() {
+function DataWrapper() {
 	const query = useSelector((state: RootState) => state.query);
 	const data = useSelector((state: RootState) => state.data);
 	const dispatch = useDispatch<AppDispatch>();
@@ -130,4 +130,4 @@ function DataTableFilters() {
 	);
 }
 
-export default DataTableFilters;
+export default DataWrapper;
