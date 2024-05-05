@@ -1,12 +1,27 @@
-import { Table, Thead, Tr, Th, Tbody, Td, Spinner, IconButton, Image, SkeletonCircle } from "@chakra-ui/react";
+import {
+	Table,
+	Thead,
+	Tr,
+	Th,
+	Tbody,
+	Td,
+	Spinner,
+	IconButton,
+	Image,
+	SkeletonCircle,
+	Input,
+	InputGroup,
+	InputLeftElement,
+} from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../store";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fetchData } from "../store/slices/data.slice";
 import { Select } from "chakra-react-select";
 import { MdOutlineNavigateNext } from "react-icons/md";
 import { TbSortAscendingNumbers, TbSortDescendingNumbers } from "react-icons/tb";
 import { changeSortQuery } from "../store/slices/query.slice";
+import { IoIosSearch } from "react-icons/io";
 
 const selectColumns = [
 	{ value: "reponame", label: "Repository Name", key: 0, isFixed: true },
@@ -23,6 +38,7 @@ function DataTable() {
 	const query = useSelector((state: RootState) => state.query);
 	const data = useSelector((state: RootState) => state.data);
 	const [columns, setColumns] = useState(selectColumns);
+	const [filter, setFilter] = useState("");
 	const dispatch = useDispatch<AppDispatch>();
 
 	const setSortQuery = (sortBy: string) => {
@@ -40,31 +56,51 @@ function DataTable() {
 		dispatch(fetchData(query));
 	}, [dispatch, query]);
 
+	const filteredRecords = useMemo(() => {
+		if (data.state === "loading" || !data.data?.items || data.data.items.length === 0) return [];
+		return data.data.items.filter((repo) => repo.name.includes(filter));
+	}, [data, filter]);
+
 	return (
 		<div className="md:px-10 px-5 md:mt-10 mt-5">
-			<div className="md:w-1/2 mb-5">
-				<Select
-					chakraStyles={{
-						control: (p) => {
-							return { ...p };
-						},
-						dropdownIndicator: (p) => {
-							return { ...p, backgroundColor: "none", paddingX: 3, fontSize: 20, background: "none" };
-						},
-						multiValueLabel: () => {
-							return { paddingY: 2 };
-						},
-					}}
-					options={selectColumns}
-					value={columns}
-					placeholder="Select some colors..."
-					closeMenuOnSelect={false}
-					size="sm"
-					isMulti
-					colorScheme="teal"
-					onChange={(e) => setColumns(e.map((ele) => ele))}
-					isClearable={false}
-				/>
+			<div className="flex md:flex-row flex-col-reverse gap-5 mb-5">
+				<div className="md:flex-[1]">
+					<InputGroup>
+						<InputLeftElement pointerEvents="none">
+							<IoIosSearch />
+						</InputLeftElement>
+						<Input
+							placeholder="Filter this page"
+							type="text"
+							value={filter}
+							onChange={(e) => setFilter(e.target.value)}
+						/>
+					</InputGroup>
+				</div>
+				<div className="md:flex-[2]">
+					<Select
+						chakraStyles={{
+							control: (p) => {
+								return { ...p };
+							},
+							dropdownIndicator: (p) => {
+								return { ...p, backgroundColor: "none", paddingX: 3, fontSize: 20, background: "none" };
+							},
+							multiValueLabel: () => {
+								return { paddingY: 2 };
+							},
+						}}
+						options={selectColumns}
+						value={columns}
+						placeholder="Select some colors..."
+						closeMenuOnSelect={false}
+						size="sm"
+						isMulti
+						colorScheme="teal"
+						onChange={(e) => setColumns(e.map((ele) => ele))}
+						isClearable={false}
+					/>
+				</div>
 			</div>
 			<div className="overflow-x-auto">
 				<Table variant="simple" className="w-full">
@@ -107,9 +143,9 @@ function DataTable() {
 						</Tr>
 					</Thead>
 					<Tbody>
-						{data.state === "success" && (data.data?.items?.length ?? 0) > 0 && (
+						{data.state === "success" && filteredRecords.length > 0 && (
 							<>
-								{data.data!.items.map((repo, index) => (
+								{filteredRecords.map((repo, index) => (
 									<Tr key={index}>
 										{columns.includes(selectColumns[6]) && (
 											<Th>
@@ -155,7 +191,7 @@ function DataTable() {
 								</Td>
 							</Tr>
 						)}
-						{data.state === "success" && (data.data?.items?.length ?? 0) == 0 && (
+						{data.state === "success" && filteredRecords.length === 0 && (
 							<Tr>
 								<Td colSpan={columns.length}>
 									<div className="w-full">No Data Found</div>
