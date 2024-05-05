@@ -1,6 +1,6 @@
 import Filter from "./components/Filter";
 import Header from "./components/layout/Header";
-import DataTable from "./components/DataTable";
+import DataWrapper from "./components/DataWrapper";
 import Pagination from "./components/Pagination";
 
 function App() {
@@ -8,7 +8,7 @@ function App() {
 		<>
 			<Header />
 			<Filter />
-			<DataTable />
+			<DataWrapper />
 			<Pagination />
 		</>
 	);

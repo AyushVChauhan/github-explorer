@@ -1,53 +1,26 @@
-import {
-	Table,
-	Thead,
-	Tr,
-	Th,
-	Tbody,
-	Td,
-	Spinner,
-	IconButton,
-	Image,
-	SkeletonCircle,
-	Input,
-	InputGroup,
-	InputLeftElement,
-	Badge,
-} from "@chakra-ui/react";
+import { Badge, IconButton, Image, SkeletonCircle, Spinner, Table, Tbody, Td, Th, Thead, Tr } from "@chakra-ui/react";
+import GithubRepository from "../types/github-repository.type";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../store";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { fetchData } from "../store/slices/data.slice";
-import { Select } from "chakra-react-select";
-import { MdOutlineNavigateNext } from "react-icons/md";
-import { TbSortAscendingNumbers, TbSortDescendingNumbers } from "react-icons/tb";
+import { useCallback } from "react";
 import { changeSortQuery } from "../store/slices/query.slice";
-import { IoIosSearch } from "react-icons/io";
+import { TbSortAscendingNumbers, TbSortDescendingNumbers } from "react-icons/tb";
+import { MdOutlineNavigateNext } from "react-icons/md";
 
-const selectColumns = [
-	// { value: "reponame", label: "Repository Name", key: 0, isFixed: true },
-	{ value: "owner", label: "Owner", key: 1 },
-	{ value: "description", label: "Description", key: 2 },
-	{ value: "stars", label: "Stars", key: 3 },
-	{ value: "forks", label: "Forks", key: 4 },
-	// { value: "visit", label: "Visit", key: 5, isFixed: true },
-	{ value: "avatar_url", label: "Avatar", key: 6 },
-	{ value: "created_at", label: "Created At", key: 7 },
-	{ value: "updated_at", label: "Updated At", key: 8 },
-	{ value: "language", label: "Language", key: 9 },
-	{ value: "size", label: "Size", key: 10 },
-];
-function DataTable() {
+type DataTableProps = {
+	columns: string[];
+	data: GithubRepository[];
+	state: "loading" | "success" | "error";
+	error?: string;
+};
+function DataTable({ columns, data, state, error }: DataTableProps) {
 	const query = useSelector((state: RootState) => state.query);
-	const data = useSelector((state: RootState) => state.data);
-	const [columns, setColumns] = useState(selectColumns);
-	const [filter, setFilter] = useState("");
 	const dispatch = useDispatch<AppDispatch>();
 
 	const setSortQuery = useCallback(
 		(sortBy: string) => {
-			if (data.state === "loading" || data.state === "error") return;
-			if (!data.data?.items || data.data.items.length === 0) return;
+			if (state === "loading" || state === "error") return;
+			if (data.length === 0) return;
 			if (query.sort === sortBy) {
 				if (query.order === "desc") dispatch(changeSortQuery({ order: "", sort: "" }));
 				else dispatch(changeSortQuery({ order: "desc", sort: sortBy }));
@@ -55,200 +28,146 @@ function DataTable() {
 			}
 			dispatch(changeSortQuery({ order: "asc", sort: sortBy }));
 		},
-		[data, dispatch, query]
+		[data, dispatch, query, state]
 	);
-
-	useEffect(() => {
-		dispatch(fetchData(query));
-	}, [dispatch, query]);
-
-	const filteredRecords = useMemo(() => {
-		if (data.state === "loading" || !data.data?.items || data.data.items.length === 0) return [];
-		return data.data.items.filter((repo) => repo.name.toUpperCase().includes(filter.toUpperCase()));
-	}, [data, filter]);
-
 	return (
-		<div className="md:px-10 px-5 md:mt-10 mt-5">
-			<div className="flex md:flex-row flex-col-reverse gap-5 mb-5">
-				<div className="md:flex-[1]">
-					<InputGroup>
-						<InputLeftElement pointerEvents="none">
-							<IoIosSearch />
-						</InputLeftElement>
-						<Input
-							placeholder="Filter this page"
-							type="text"
-							value={filter}
-							onChange={(e) => setFilter(e.target.value)}
-						/>
-					</InputGroup>
-				</div>
-				<div className="md:flex-[2]">
-					<Select
-						chakraStyles={{
-							control: (p) => {
-								return { ...p, height: "100%", rounded: 5, minH: "40px" };
-							},
-							dropdownIndicator: (p) => {
-								return { ...p, backgroundColor: "none", paddingX: 3, fontSize: 20, background: "none" };
-							},
-							multiValueLabel: () => {
-								return { paddingY: 2 };
-							},
-						}}
-						options={selectColumns}
-						value={columns}
-						placeholder="Select columns"
-						closeMenuOnSelect={false}
-						size="sm"
-						isMulti
-						colorScheme="teal"
-						onChange={(e) => setColumns(e.map((ele) => ele))}
-					/>
-				</div>
-			</div>
-			<div className="overflow-x-auto">
-				<Table variant="simple" className="w-full">
-					<Thead>
-						<Tr>
-							{columns.includes(selectColumns[4]) && <Th>Avatar</Th>}
-							<Th>Repository Name</Th>
-							{columns.includes(selectColumns[0]) && <Th>Owner</Th>}
-							{columns.includes(selectColumns[7]) && <Th>Language</Th>}
-							{columns.includes(selectColumns[1]) && <Th>Description</Th>}
-							{columns.includes(selectColumns[2]) && (
-								<Th className="cursor-pointer" onClick={() => setSortQuery("stars")}>
-									<div className="flex justify-between">
-										Stars
-										{query.sort === "stars" && query.order === "asc" && (
-											<TbSortAscendingNumbers size={20} className="ms-3" />
-										)}
-										{query.sort === "stars" && query.order === "desc" && (
-											<TbSortDescendingNumbers size={20} className="ms-3" />
-										)}
-									</div>
-								</Th>
-							)}
-							{columns.includes(selectColumns[3]) && (
-								<Th className="cursor-pointer" onClick={() => setSortQuery("forks")}>
-									<div className="flex justify-between">
-										Forks
-										{query.sort === "forks" && query.order === "asc" && (
-											<TbSortAscendingNumbers size={20} className="ms-3" />
-										)}
-										{query.sort === "forks" && query.order === "desc" && (
-											<TbSortDescendingNumbers size={20} className="ms-3" />
-										)}
-									</div>
-								</Th>
-							)}
-							{columns.includes(selectColumns[8]) && <Th>Size</Th>}
-							{columns.includes(selectColumns[5]) && <Th>Created At</Th>}
-							{columns.includes(selectColumns[6]) && (
-								<Th className="cursor-pointer" onClick={() => setSortQuery("updated")}>
-									<div className="flex justify-between">
-										Updated At
-										{query.sort === "updated" && query.order === "asc" && (
-											<TbSortAscendingNumbers size={20} className="ms-3" />
-										)}
-										{query.sort === "updated" && query.order === "desc" && (
-											<TbSortDescendingNumbers size={20} className="ms-3" />
-										)}
-									</div>
-								</Th>
-							)}
-							<Th>Visit</Th>
-						</Tr>
-					</Thead>
-					<Tbody>
-						{data.state === "success" && filteredRecords.length > 0 && (
-							<>
-								{filteredRecords.map((repo, index) => (
-									<Tr key={index}>
-										{columns.includes(selectColumns[4]) && (
-											<Th>
-												<Image
-													boxSize="30px"
-													borderRadius="full"
-													src={repo.owner.avatar_url}
-													alt="avatar"
-													fallback={<SkeletonCircle boxSize="30px" />}
-												/>
-											</Th>
-										)}
-										<Td>{repo.name}</Td>
-										{columns.includes(selectColumns[0]) && <Td>{repo.owner.login}</Td>}
-										{columns.includes(selectColumns[7]) && (
-											<Td>
-												<Badge variant="subtle" colorScheme="blue">
-													{repo.language ?? "-"}
-												</Badge>
-											</Td>
-										)}
-										{columns.includes(selectColumns[1]) && <Td>{repo.description ?? "-"}</Td>}
-										{columns.includes(selectColumns[2]) && (
-											<Td>
-												{repo.stargazers_count > 1000
-													? (repo.stargazers_count / 1000).toFixed(1) + "k"
-													: repo.stargazers_count}
-											</Td>
-										)}
-										{columns.includes(selectColumns[3]) && (
-											<Td>
-												{repo.forks > 1000 ? (repo.forks / 1000).toFixed(1) + "k" : repo.forks}
-											</Td>
-										)}
-										{columns.includes(selectColumns[8]) && (
-											<Td>{(repo.size / 1000).toFixed(2)}MB</Td>
-										)}
-										{columns.includes(selectColumns[5]) && (
-											<Td>{new Date(repo.created_at).toLocaleDateString()}</Td>
-										)}
-										{columns.includes(selectColumns[6]) && (
-											<Td>{new Date(repo.updated_at).toLocaleDateString()}</Td>
-										)}
-										<Td>
-											<IconButton
-												onClick={() => window.open(repo.html_url, "_blank")}
-												aria-label="visit"
-												icon={<MdOutlineNavigateNext size={30} />}
+		<div className="overflow-x-auto">
+			<Table variant="simple" className="w-full">
+				<Thead>
+					<Tr>
+						{columns.includes("avatar_url") && <Th>Avatar</Th>}
+						<Th>Repository Name</Th>
+						{columns.includes("owner") && <Th>Owner</Th>}
+						{columns.includes("language") && <Th>Language</Th>}
+						{columns.includes("description") && <Th>Description</Th>}
+						{columns.includes("stars") && (
+							<Th className="cursor-pointer" onClick={() => setSortQuery("stars")}>
+								<div className="flex justify-between">
+									Stars
+									{query.sort === "stars" && query.order === "asc" && (
+										<TbSortAscendingNumbers size={20} className="ms-3" />
+									)}
+									{query.sort === "stars" && query.order === "desc" && (
+										<TbSortDescendingNumbers size={20} className="ms-3" />
+									)}
+								</div>
+							</Th>
+						)}
+						{columns.includes("forks") && (
+							<Th className="cursor-pointer" onClick={() => setSortQuery("forks")}>
+								<div className="flex justify-between">
+									Forks
+									{query.sort === "forks" && query.order === "asc" && (
+										<TbSortAscendingNumbers size={20} className="ms-3" />
+									)}
+									{query.sort === "forks" && query.order === "desc" && (
+										<TbSortDescendingNumbers size={20} className="ms-3" />
+									)}
+								</div>
+							</Th>
+						)}
+						{columns.includes("size") && <Th>Size</Th>}
+						{columns.includes("created_at") && <Th>Created At</Th>}
+						{columns.includes("updated_at") && (
+							<Th className="cursor-pointer" onClick={() => setSortQuery("updated")}>
+								<div className="flex justify-between">
+									Updated At
+									{query.sort === "updated" && query.order === "asc" && (
+										<TbSortAscendingNumbers size={20} className="ms-3" />
+									)}
+									{query.sort === "updated" && query.order === "desc" && (
+										<TbSortDescendingNumbers size={20} className="ms-3" />
+									)}
+								</div>
+							</Th>
+						)}
+						<Th>Visit</Th>
+					</Tr>
+				</Thead>
+				<Tbody>
+					{state === "success" && data.length > 0 && (
+						<>
+							{data.map((repo, index) => (
+								<Tr key={index}>
+									{columns.includes("avatar_url") && (
+										<Th>
+											<Image
+												boxSize="30px"
+												borderRadius="full"
+												src={repo.owner.avatar_url}
+												alt="avatar"
+												fallback={<SkeletonCircle boxSize="30px" />}
 											/>
+										</Th>
+									)}
+									<Td>{repo.name}</Td>
+									{columns.includes("owner") && <Td>{repo.owner.login}</Td>}
+									{columns.includes("language") && (
+										<Td>
+											<Badge variant="subtle" colorScheme="blue">
+												{repo.language ?? "-"}
+											</Badge>
 										</Td>
-									</Tr>
-								))}
-							</>
-						)}
+									)}
+									{columns.includes("description") && <Td>{repo.description ?? "-"}</Td>}
+									{columns.includes("stars") && (
+										<Td>
+											{repo.stargazers_count > 1000
+												? (repo.stargazers_count / 1000).toFixed(1) + "k"
+												: repo.stargazers_count}
+										</Td>
+									)}
+									{columns.includes("forks") && (
+										<Td>{repo.forks > 1000 ? (repo.forks / 1000).toFixed(1) + "k" : repo.forks}</Td>
+									)}
+									{columns.includes("size") && <Td>{(repo.size / 1000).toFixed(2)}MB</Td>}
+									{columns.includes("created_at") && (
+										<Td>{new Date(repo.created_at).toLocaleDateString()}</Td>
+									)}
+									{columns.includes("updated_at") && (
+										<Td>{new Date(repo.updated_at).toLocaleDateString()}</Td>
+									)}
+									<Td>
+										<IconButton
+											onClick={() => window.open(repo.html_url, "_blank")}
+											aria-label="visit"
+											icon={<MdOutlineNavigateNext size={30} />}
+										/>
+									</Td>
+								</Tr>
+							))}
+						</>
+					)}
 
-						{data.state === "loading" && (
-							<Tr>
-								<Td colSpan={columns.length + 2}>
-									<div className="h-32 flex justify-center items-center w-full">
-										<div>
-											<Spinner size={"xl"} />
-										</div>
+					{state === "loading" && (
+						<Tr>
+							<Td colSpan={columns.length + 2}>
+								<div className="h-32 flex justify-center items-center w-full">
+									<div>
+										<Spinner size={"xl"} />
 									</div>
-								</Td>
-							</Tr>
-						)}
+								</div>
+							</Td>
+						</Tr>
+					)}
 
-						{data.state === "success" && filteredRecords.length === 0 && (
-							<Tr>
-								<Td colSpan={columns.length + 2}>
-									<div className="w-full">No Data Found</div>
-								</Td>
-							</Tr>
-						)}
+					{state === "success" && data.length === 0 && (
+						<Tr>
+							<Td colSpan={columns.length + 2}>
+								<div className="w-full">No Data Found</div>
+							</Td>
+						</Tr>
+					)}
 
-						{data.state === "error" && (
-							<Tr>
-								<Td colSpan={columns.length + 2}>
-									<div className="w-full">{data.error}</div>
-								</Td>
-							</Tr>
-						)}
-					</Tbody>
-				</Table>
-			</div>
+					{state === "error" && (
+						<Tr>
+							<Td colSpan={columns.length + 2}>
+								<div className="w-full">{error}</div>
+							</Td>
+						</Tr>
+					)}
+				</Tbody>
+			</Table>
 		</div>
 	);
 }
