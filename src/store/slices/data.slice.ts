@@ -23,13 +23,15 @@ export const fetchData = createAsyncThunk("github/respository", async (query: Qu
 	const searchQuery = encodeURI(
 		`q=${q}&page=${query.page}&per_page=${query.rowsPerPage}${query.sort ? sortQuery : ""}`
 	);
-	console.log(searchQuery);
+	const headers: { [key: string]: string } = {
+		Accept: "application/vnd.github+json",
+		"X-GitHub-Api-Version": "2022-11-28",
+	};
+	if (import.meta.env.VITE_GITHUB_TOKEN) {
+		headers["Authorization"] = `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`;
+	}
 	const response = await fetch(`https://api.github.com/search/repositories?${searchQuery}`, {
-		headers: {
-			Accept: "application/vnd.github+json",
-			"X-GitHub-Api-Version": "2022-11-28",
-			Authorization: `Bearer ${import.meta.env.VITE_GITHUB_TOKEN}`,
-		},
+		headers,
 	});
 	const json = await response.json();
 

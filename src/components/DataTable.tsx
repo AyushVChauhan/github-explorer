@@ -15,7 +15,7 @@ import {
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../store";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchData } from "../store/slices/data.slice";
 import { Select } from "chakra-react-select";
 import { MdOutlineNavigateNext } from "react-icons/md";
@@ -41,16 +41,19 @@ function DataTable() {
 	const [filter, setFilter] = useState("");
 	const dispatch = useDispatch<AppDispatch>();
 
-	const setSortQuery = (sortBy: string) => {
-		if (data.state === "loading" || data.state === "error") return;
-		if (!data.data?.items || data.data.items.length === 0) return;
-		if (query.sort === sortBy) {
-			if (query.order === "desc") dispatch(changeSortQuery({ order: "", sort: "" }));
-			else dispatch(changeSortQuery({ order: "desc", sort: sortBy }));
-			return;
-		}
-		dispatch(changeSortQuery({ order: "asc", sort: sortBy }));
-	};
+	const setSortQuery = useCallback(
+		(sortBy: string) => {
+			if (data.state === "loading" || data.state === "error") return;
+			if (!data.data?.items || data.data.items.length === 0) return;
+			if (query.sort === sortBy) {
+				if (query.order === "desc") dispatch(changeSortQuery({ order: "", sort: "" }));
+				else dispatch(changeSortQuery({ order: "desc", sort: sortBy }));
+				return;
+			}
+			dispatch(changeSortQuery({ order: "asc", sort: sortBy }));
+		},
+		[data, dispatch, query]
+	);
 
 	useEffect(() => {
 		dispatch(fetchData(query));
@@ -58,7 +61,7 @@ function DataTable() {
 
 	const filteredRecords = useMemo(() => {
 		if (data.state === "loading" || !data.data?.items || data.data.items.length === 0) return [];
-		return data.data.items.filter((repo) => repo.name.includes(filter));
+		return data.data.items.filter((repo) => repo.name.toUpperCase().includes(filter.toUpperCase()));
 	}, [data, filter]);
 
 	return (
