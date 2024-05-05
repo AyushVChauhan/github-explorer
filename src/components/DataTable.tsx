@@ -221,7 +221,7 @@ function DataTable() {
 
 						{data.state === "loading" && (
 							<Tr>
-								<Td colSpan={columns.length}>
+								<Td colSpan={columns.length + 2}>
 									<div className="h-32 flex justify-center items-center w-full">
 										<div>
 											<Spinner size={"xl"} />
@@ -233,7 +233,7 @@ function DataTable() {
 
 						{data.state === "success" && filteredRecords.length === 0 && (
 							<Tr>
-								<Td colSpan={columns.length}>
+								<Td colSpan={columns.length + 2}>
 									<div className="w-full">No Data Found</div>
 								</Td>
 							</Tr>
@@ -241,7 +241,7 @@ function DataTable() {
 
 						{data.state === "error" && (
 							<Tr>
-								<Td colSpan={columns.length}>
+								<Td colSpan={columns.length + 2}>
 									<div className="w-full">{data.error}</div>
 								</Td>
 							</Tr>
