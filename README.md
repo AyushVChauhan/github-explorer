@@ -44,3 +44,8 @@ create .env file in root directory of the project and create following variable.
 
 You can generate your token here \
 https://github.com/settings/tokens?type=beta
+
+## Screenshots
+![1](https://github.com/user-attachments/assets/27524866-e9a2-42f3-a525-19270428a684)
+![2](https://github.com/user-attachments/assets/e5fcd1e1-51b3-47ea-9059-04693d678467)
+![3](https://github.com/user-attachments/assets/6d6fe968-b985-408f-ba0b-88b91e566385)
